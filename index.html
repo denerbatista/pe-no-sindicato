@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Desfiliação — Prefeitura de Aracruz</title>
+  <title>Desfiliação — Prefeitura de Aracruz (PDF + Assinatura)</title>
   <meta name="color-scheme" content="light dark" />
   <style>
     :root { --bg:#0b0c0f; --card:#12141a; --text:#e7e9ee; --muted:#a9b0bd;
@@ -43,16 +43,23 @@
       font-family:ui-sans-serif,system-ui,-apple-system,Roboto,Arial;border:1px dashed rgba(255,255,255,.12);}
     .tag{font-size:.75rem;padding:3px 8px;border-radius:999px;background:rgba(0,0,0,.08);color:var(--muted);display:inline-block;}
     footer{text-align:center;color:var(--muted);font-size:.85rem;margin:16px 0 0;}
+
+    /* Área de assinatura */
+    .sig-wrap{border:1px dashed rgba(255,255,255,.2);border-radius:12px;background:rgba(0,0,0,.04);padding:10px;}
+    .sig-toolbar{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .sig-toolbar .left{display:flex;gap:8px;align-items:center;}
+    canvas#signature{width:100%;height:180px;background:rgba(0,0,0,.02);border-radius:8px;touch-action:none;}
+    .small{font-size:.82rem;color:var(--muted);}
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <h1>Desfiliação Sindical — Prefeitura de Aracruz</h1>
-      <p class="lead">Preencha, gere o PDF e envie por e-mail (com anexo).</p>
+      <p class="lead">Preencha os dados e gere o PDF. Assine com o dedo ou deixe para assinar via Gov.br depois.</p>
     </header>
 
-    <form id="form" class="card" onsubmit="event.preventDefault(); gerarTudo();">
+    <form id="form" class="card" onsubmit="event.preventDefault(); gerarPDF();">
       <div class="grid">
         <div>
           <label for="nome">Nome completo*</label>
@@ -95,54 +102,64 @@
             <option value="SINDUPES">SINDUPES</option>
           </select>
         </div>
-
-        <div>
-          <label for="emailSind">E-mail do sindicato*</label>
-          <input id="emailSind" type="email" required placeholder="e-mail do sindicato" />
-        </div>
-        <div>
-          <label for="emailRh">E-mail do RH (cópia)</label>
-          <input id="emailRh" type="email" placeholder="rh@aracruz.es.gov.br (se desejar)" />
-        </div>
       </div>
 
       <div class="grid" style="margin-top:10px">
         <div class="grid-1">
           <label for="observacoes">Observações adicionais (opcional)</label>
           <textarea id="observacoes" placeholder="Ex.: Favor confirmar em até 5 dias úteis."></textarea>
-          <div class="help">Dica: confira o e-mail correto do sindicato escolhido (SISMA ou SINDUPES) antes de enviar.</div>
         </div>
       </div>
 
+      <!-- Escolha de assinatura -->
+      <div class="card">
+        <label style="margin-bottom:8px;">Assinatura</label>
+        <div class="row">
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input type="radio" name="assinaturaModo" value="agora" checked />
+            Assinar agora com o dedo (recomendado)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input type="radio" name="assinaturaModo" value="depois" />
+            Gerar sem assinatura (assinar via Gov.br depois)
+          </label>
+        </div>
+
+        <div id="sigArea" class="sig-wrap" style="margin-top:10px;">
+          <div class="sig-toolbar">
+            <div class="left">
+              <button class="btn secondary" type="button" id="sigLimpar">Limpar assinatura</button>
+              <button class="btn secondary" type="button" id="sigDesfazer">Desfazer</button>
+            </div>
+            <span class="small">Assine na área abaixo com o dedo ou caneta.</span>
+          </div>
+          <canvas id="signature"></canvas>
+        </div>
+
+        <p class="help" style="margin-top:8px">
+          Se escolher “Gerar sem assinatura”, o PDF terá espaço para assinatura. Depois você pode
+          assinar digitalmente no <b>Gov.br Assinatura</b> ou outro serviço equivalente.
+        </p>
+      </div>
+
       <div class="row" style="margin-top:12px">
-        <button class="btn" type="submit">Gerar PDF</button>
-        <button class="btn secondary" type="button" onclick="limpar()">Limpar</button>
+        <button class="btn safe" type="submit">Gerar PDF</button>
+        <button class="btn secondary" type="button" onclick="limparTudo()">Limpar</button>
       </div>
     </form>
 
     <section id="saida" class="card" hidden>
-      <div class="row" style="align-items:center; margin-bottom:8px">
-        <strong>Pré-visualização</strong>
-        <span class="tag" id="statusCompat">Verificando recursos do aparelho…</span>
-      </div>
-      <div id="preview" class="preview"></div>
+      <strong>Pré-visualização (texto)</strong>
+      <div id="preview" class="preview" style="margin-top:8px"></div>
 
       <div class="actions" style="margin-top:12px">
-        <button id="btnSharePDF" class="btn safe" type="button" onclick="compartilharPDF()" disabled>
-          Abrir e-mail com PDF anexado
-        </button>
-        <a id="btnMailto" class="btn" href="#" target="_blank" rel="noopener">
-          Abrir e-mail (assunto + corpo — sem anexo)
-        </a>
-        <a id="btnBaixarPDF" class="btn secondary" href="#" download="carta-desfiliacao.pdf">
-          Baixar PDF
-        </a>
-        <button class="btn danger" type="button" onclick="editar()">Voltar e editar</button>
+        <a id="btnBaixarPDF" class="btn" href="#" download="carta-desfiliacao.pdf">Baixar PDF</a>
+        <button class="btn secondary" type="button" onclick="editar()">Voltar e editar</button>
       </div>
 
       <p class="help" style="margin-top:10px">
-        💡 <b>Importante:</b> se “Abrir e-mail com PDF” estiver indisponível no seu aparelho,
-        use “Abrir e-mail (sem anexo)” e anexe o PDF baixado.
+        Dica: abra o PDF para conferir. Se optou por “assinar depois”, o documento
+        terá um campo em branco para assinatura.
       </p>
     </section>
 
@@ -156,48 +173,151 @@
 
   <script>
     const $ = (id) => document.getElementById(id);
-    let pdfBlob = null, pdfURL = null;
 
-    // Data padrão = hoje + compatibilidade
+    // Canvas de assinatura
+    const canvas = document.getElementById('signature');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let strokes = []; // para desfazer
+    let currentStroke = [];
+
+    // Ajusta resolução do canvas conforme tamanho do container e DPR
+    function resizeCanvas(){
+      const rect = canvas.getBoundingClientRect();
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      canvas.width = Math.floor(rect.width * ratio);
+      canvas.height = Math.floor(rect.height * ratio);
+      ctx.scale(ratio, ratio);
+      // Redesenha traços guardados ao redimensionar
+      redrawStrokes();
+    }
+
+    function startDraw(x, y){
+      drawing = true;
+      currentStroke = [{x,y}];
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
+
+    function moveDraw(x, y){
+      if(!drawing) return;
+      currentStroke.push({x,y});
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+
+    function endDraw(){
+      if(!drawing) return;
+      drawing = false;
+      ctx.closePath();
+      if(currentStroke.length) strokes.push(currentStroke);
+      currentStroke = [];
+    }
+
+    function clearSig(){
+      strokes = [];
+      currentStroke = [];
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+
+    function undoSig(){
+      if(!strokes.length) return;
+      strokes.pop();
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      redrawStrokes();
+    }
+
+    function redrawStrokes(){
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      let first = true;
+      for(const stroke of strokes){
+        for(let i=0;i<stroke.length;i++){
+          const p = stroke[i];
+          if(first){ ctx.moveTo(p.x, p.y); first=false; }
+          else ctx.lineTo(p.x, p.y);
+        }
+      }
+      ctx.stroke();
+      ctx.closePath();
+    }
+
+    // Eventos mouse/touch
+    function getPos(e){
+      const rect = canvas.getBoundingClientRect();
+      if(e.touches && e.touches[0]){
+        return {
+          x: (e.touches[0].clientX - rect.left),
+          y: (e.touches[0].clientY - rect.top)
+        };
+      } else {
+        return { x: (e.clientX - rect.left), y: (e.clientY - rect.top) };
+      }
+    }
+
+    canvas.addEventListener('mousedown', e => startDraw(...Object.values(getPos(e))));
+    canvas.addEventListener('mousemove', e => moveDraw(...Object.values(getPos(e))));
+    canvas.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('mouseleave', endDraw);
+
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); startDraw(...Object.values(getPos(e))); }, {passive:false});
+    canvas.addEventListener('touchmove', e => { e.preventDefault(); moveDraw(...Object.values(getPos(e))); }, {passive:false});
+    canvas.addEventListener('touchend', e => { e.preventDefault(); endDraw(); }, {passive:false});
+
+    window.addEventListener('resize', resizeCanvas);
+
+    // Botões assinatura
+    document.getElementById('sigLimpar').addEventListener('click', clearSig);
+    document.getElementById('sigDesfazer').addEventListener('click', undoSig);
+
+    // Mostrar/esconder área de assinatura conforme opção
+    document.querySelectorAll('input[name="assinaturaModo"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const modo = document.querySelector('input[name="assinaturaModo"]:checked').value;
+        document.getElementById('sigArea').style.display = (modo === 'agora') ? 'block' : 'none';
+      });
+    });
+
+    // Estado do PDF
+    let pdfURL = null;
+
+    // Data padrão = hoje
     (function init(){
       const hoje = new Date();
-      $("data").value = hoje.toISOString().slice(0,10);
-      const testFile = new File(["x"], "x.pdf", {type:"application/pdf"});
-      const hasShare = !!navigator.share;
-      const canFiles = !!navigator.canShare && navigator.canShare({ files: [testFile] });
-      $("statusCompat").textContent = hasShare ? (canFiles ? "Compatível: compartilhar com anexo" : "Compatível: compartilhar (sem anexo)") : "Sem compartilhamento nativo";
-
-      // Sugestão de placeholder de e-mail conforme sindicato
-      $("sindicatoSel").addEventListener("change", () => {
-        const v = $("sindicatoSel").value;
-        $("emailSind").placeholder = v === "SISMA" ? "e-mail do SISMA" : "e-mail do SINDUPES";
-      });
+      $('data').value = hoje.toISOString().slice(0,10);
+      // Inicializa canvas
+      setTimeout(resizeCanvas, 50);
     })();
 
     function validarObrigatorios() {
-      const ids = ["nome","cpf","local","sindicatoSel","emailSind"];
+      const ids = ["nome","cpf","local","sindicatoSel"];
       return ids.every(id => $(id).value && $(id).value.trim());
     }
 
     function gerarAssunto() {
-      const nome = $("nome").value.trim();
-      const cpf = $("cpf").value.replace(/\D/g,"");
+      const nome = $('nome').value.trim();
+      const cpf = $('cpf').value.replace(/\D/g,"");
       const cpfFmt = cpf ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,"$1.$2.$3-$4") : "";
-      const sindicato = $("sindicatoSel").value || "Sindicato";
+      const sindicato = $('sindicatoSel').value || "Sindicato";
       return `Pedido de Desfiliação — ${nome}${cpfFmt ? " — CPF " + cpfFmt : ""} — ${sindicato}`;
     }
 
     function montarTextoCarta() {
-      const nome = $("nome").value.trim();
-      const cpf = $("cpf").value.trim();
-      const empresa = $("empresa").value.trim(); // já fixo
-      const matricula = $("matricula").value.trim();
-      const endereco = $("endereco").value.trim();
-      const local = $("local").value.trim();
-      const data = $("data").value ? new Date($("data").value) : new Date();
-      const dataFmt = data.toLocaleDateString("pt-BR");
-      const sindicato = $("sindicatoSel").value;
-      const obs = $("observacoes").value.trim();
+      const nome = $('nome').value.trim();
+      const cpf = $('cpf').value.trim();
+      const empresa = $('empresa').value.trim(); // fixo
+      const matricula = $('matricula').value.trim();
+      const endereco = $('endereco').value.trim();
+      const local = $('local').value.trim();
+      const data = $('data').value ? new Date($('data').value) : new Date();
+      const dataFmt = data.toLocaleDateString('pt-BR');
+      const sindicato = $('sindicatoSel').value;
+      const obs = $('observacoes').value.trim();
 
       const header = `${nome}
 CPF: ${cpf}${matricula ? `  •  Matrícula: ${matricula}` : ""}\nEmpregador: ${empresa}${endereco ? `\nEndereço: ${endereco}` : ""}`;
@@ -223,116 +343,124 @@ ${nome}`;
       return header + "\n\n" + corpo;
     }
 
-    async function gerarPDFBlob() {
-      const { jsPDF } = window.jspdf || {};
-      if (!jsPDF) throw new Error("jsPDF não carregou.");
-
-      const doc = new jsPDF({ unit: "pt", format: "a4" });
-      const margem = 56;
-      const largura = doc.internal.pageSize.getWidth() - margem*2;
-      const texto = montarTextoCarta();
-
-      doc.setFont("Times","Normal");
-      doc.setFontSize(13);
-
-      const linhas = doc.splitTextToSize(texto, largura);
-      let y = margem;
-      const altura = doc.internal.pageSize.getHeight();
-
-      for (const l of linhas) {
-        if (y > altura - margem) { doc.addPage(); y = margem; }
-        doc.text(l, margem, y);
-        y += 18;
-      }
-
-      // Gera Blob
-      return new Promise((resolve) => {
-        const dataUriString = doc.output("datauristring");
-        const byteString = atob(dataUriString.split(",")[1]);
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
-        for (let i=0; i<byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-        resolve(new Blob([ab], { type: "application/pdf" }));
-      });
-    }
-
-    function atualizarMailto(texto) {
-      const to = $("emailSind").value.trim();
-      const cc = $("emailRh").value.trim();
-      const subject = encodeURIComponent(gerarAssunto());
-      const body = encodeURIComponent(texto);
-      const href = `mailto:${encodeURIComponent(to)}?${cc ? "cc=" + encodeURIComponent(cc) + "&" : ""}subject=${subject}&body=${body}`;
-      $("btnMailto").href = href;
-    }
-
-    async function gerarTudo() {
+    async function gerarPDF() {
       if (!validarObrigatorios()) { alert("Preencha os campos marcados com *"); return; }
 
       const texto = montarTextoCarta();
-      $("preview").textContent = texto;
-      $("saida").hidden = false;
+      $('preview').textContent = texto;
+      $('saida').hidden = false;
+
+      const modo = document.querySelector('input[name="assinaturaModo"]:checked').value;
+      const incluirAssinatura = (modo === 'agora' && strokes.length > 0);
 
       try {
-        pdfBlob = await gerarPDFBlob();
+        const { jsPDF } = window.jspdf || {};
+        if (!jsPDF) throw new Error("jsPDF não carregou.");
+
+        const doc = new jsPDF({ unit: "pt", format: "a4" });
+        const margem = 56;
+        const largura = doc.internal.pageSize.getWidth() - margem*2;
+        const altura = doc.internal.pageSize.getHeight();
+
+        // Texto
+        doc.setFont("Times","Normal");
+        doc.setFontSize(13);
+
+        const linhas = doc.splitTextToSize(texto, largura);
+        let y = margem;
+        for (const l of linhas) {
+          if (y > altura - margem - 160) { // reserva espaço para assinatura se necessário
+            doc.addPage(); y = margem;
+          }
+          doc.text(l, margem, y);
+          y += 18;
+        }
+
+        // Área de assinatura no PDF
+        const assinaturaTop = y + 20;
+        const linhaY = assinaturaTop + 70;
+
+        // Se assinando depois, deixa espaço e legenda
+        // Se assinou no canvas, insere a imagem da assinatura
+        doc.setFontSize(11);
+        doc.setDrawColor(150);
+        doc.setLineWidth(0.7);
+
+        // Caixa/linha de assinatura
+        doc.line(margem, linhaY, margem + 300, linhaY);
+
+        if (incluirAssinatura) {
+          // Exporta assinatura do canvas em tamanho adequado
+          const dataUrl = exportSignaturePNG();
+          // Insere a assinatura (ajusta para caber)
+          doc.addImage(dataUrl, 'PNG', margem, assinaturaTop, 300, 60);
+          doc.text("Assinado digitalmente (captura de assinatura manual)", margem, linhaY + 14);
+        } else {
+          doc.text("Assinatura do(a) servidor(a)", margem, linhaY + 14);
+          doc.text("Este documento foi gerado sem assinatura para posterior assinatura digital (ex.: Gov.br).", margem, linhaY + 30);
+        }
+
+        // Nome abaixo
+        const nome = $('nome').value.trim();
+        doc.text(nome, margem, linhaY + 46);
+
+        // Gera Blob/URL para download
+        const blob = doc.output('blob');
         if (pdfURL) URL.revokeObjectURL(pdfURL);
-        pdfURL = URL.createObjectURL(pdfBlob);
-        const nomeArquivo = `desfiliacao-aracruz-${($("nome").value.trim()||"").toLowerCase().replace(/\s+/g,"-")||"servidor"}.pdf`;
-        const linkBaixar = $("btnBaixarPDF");
+        pdfURL = URL.createObjectURL(blob);
+
+        const nomeArquivo = `desfiliacao-aracruz-${(nome||"servidor").toLowerCase().replace(/\s+/g,"-")}.pdf`;
+        const linkBaixar = $('btnBaixarPDF');
         linkBaixar.href = pdfURL;
         linkBaixar.download = nomeArquivo;
 
-        const testeArquivo = new File([pdfBlob], nomeArquivo, { type: "application/pdf" });
-        $("btnSharePDF").disabled = !(navigator.canShare && navigator.canShare({ files: [testeArquivo] }));
+        // rola para as ações
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 
       } catch (e) {
         console.error(e);
         alert("Falha ao gerar o PDF. Tente novamente.");
-        return;
       }
-
-      atualizarMailto(texto);
-
-      const hasShare = !!navigator.share;
-      const canFiles = !!navigator.canShare && navigator.canShare({ files: [new File(["x"], "x.pdf", {type:"application/pdf"})] });
-      $("statusCompat").textContent = hasShare ? (canFiles ? "Compatível: compartilhar com anexo" : "Compatível: compartilhar (sem anexo)") : "Sem compartilhamento nativo";
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }
 
-    function editar(){ $("saida").hidden = true; window.scrollTo({top:0, behavior:"smooth"}); }
-    function limpar(){
-      document.getElementById("form").reset();
-      $("empresa").value = "Prefeitura de Aracruz";
-      $("data").value = new Date().toISOString().slice(0,10);
-      $("saida").hidden = true;
-      if (pdfURL) { URL.revokeObjectURL(pdfURL); pdfURL = null; }
-      pdfBlob = null;
-    }
-
-    async function compartilharPDF() {
-      try {
-        if (!pdfBlob) pdfBlob = await gerarPDFBlob();
-        const nomeArquivo = $("btnBaixarPDF").download || "desfiliacao-aracruz.pdf";
-        const file = new File([pdfBlob], nomeArquivo, { type: "application/pdf" });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          const to = $("emailSind").value.trim();
-          const cc = $("emailRh").value.trim();
-          const subject = gerarAssunto();
-          const corpo = montarTextoCarta();
-
-          const textoEmail = [
-            `Para: ${to}`, cc ? `Cópia: ${cc}` : "", "",
-            corpo
-          ].filter(Boolean).join("\n");
-
-          await navigator.share({ title: subject, text: textoEmail, files: [file] });
-        } else {
-          alert("Seu dispositivo/navegador não permite compartilhar arquivos diretamente. Use 'Baixar PDF' e anexe no e-mail.");
+    function exportSignaturePNG(){
+      // Cria um canvas “limpo” do tamanho em CSS para exportar a assinatura
+      const rect = canvas.getBoundingClientRect();
+      const tmp = document.createElement('canvas');
+      tmp.width = rect.width;
+      tmp.height = rect.height;
+      const tctx = tmp.getContext('2d');
+      // redesenha os strokes no tamanho CSS (sem DPR) para evitar distorção
+      tctx.lineWidth = 2.2;
+      tctx.lineCap = 'round';
+      tctx.lineJoin = 'round';
+      tctx.beginPath();
+      let first = true;
+      for(const stroke of strokes){
+        for(let i=0;i<stroke.length;i++){
+          const p = stroke[i];
+          if(first){ tctx.moveTo(p.x, p.y); first=false; }
+          else tctx.lineTo(p.x, p.y);
         }
-      } catch (e) {
-        console.error(e);
-        alert("Não foi possível abrir o compartilhamento. Baixe o PDF e anexe no e-mail.");
       }
+      tctx.stroke();
+      tctx.closePath();
+      return tmp.toDataURL('image/png');
+    }
+
+    function editar(){ $('saida').hidden = true; window.scrollTo({top:0, behavior:"smooth"}); }
+
+    function limparTudo(){
+      document.getElementById('form').reset();
+      $('empresa').value = 'Prefeitura de Aracruz';
+      $('data').value = new Date().toISOString().slice(0,10);
+      $('saida').hidden = true;
+      if (pdfURL) { URL.revokeObjectURL(pdfURL); pdfURL = null; }
+      // assinatura
+      clearSig();
+      // volta opção padrão (assinar agora)
+      document.querySelector('input[name="assinaturaModo"][value="agora"]').checked = true;
+      document.getElementById('sigArea').style.display = 'block';
     }
   </script>
 </body>
