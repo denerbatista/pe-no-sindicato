@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Desfiliação — Prefeitura de Aracruz</title>
+  <meta name="color-scheme" content="light dark" />
+  <style>
+    :root { --bg:#0b0c0f; --card:#12141a; --text:#e7e9ee; --muted:#a9b0bd;
+            --accent:#5b9cff; --accent-2:#27c3a8; --danger:#ff6b6b; color-scheme: light dark; }
+    @media (prefers-color-scheme: light) {
+      :root { --bg:#f7f8fa; --card:#ffffff; --text:#0b0c0f; --muted:#5a6472; }
+    }
+    *{box-sizing:border-box}
+    body{margin:0;padding:16px;background:var(--bg);color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Helvetica Neue",Arial,system-ui,sans-serif;line-height:1.35;}
+    .wrap{max-width:760px;margin:0 auto;}
+    header{text-align:center;margin:6px 0 14px;}
+    h1{font-size:clamp(20px,4.5vw,28px);margin:0 0 6px;}
+    p.lead{margin:0;color:var(--muted);font-size:.98rem;}
+    .card{background:var(--card);border-radius:16px;padding:14px;margin:14px 0;
+      box-shadow:0 6px 22px rgba(0,0,0,.10);border:1px solid rgba(255,255,255,.06);}
+    .grid{display:grid;gap:10px;grid-template-columns:1fr 1fr;}
+    .grid-1{grid-template-columns:1fr;}
+    @media (max-width:640px){.grid{grid-template-columns:1fr;}}
+    label{display:block;font-size:.9rem;margin:2px 2px 6px;color:var(--muted);}
+    input,select,textarea{width:100%;border:1px solid rgba(0,0,0,.12);background:transparent;color:var(--text);
+      padding:12px;border-radius:12px;font-size:16px;outline:none;}
+    input[readonly]{opacity:.8;background:rgba(0,0,0,.04);}
+    textarea{min-height:110px;resize:vertical;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;}
+    .row>*{flex:1 1 180px;}
+    .help{color:var(--muted);font-size:.85rem;margin-top:6px;}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;
+      padding:12px 14px;font-weight:600;border-radius:12px;border:none;background:var(--accent);
+      color:white;width:100%;cursor:pointer;text-decoration:none;font-size:16px;}
+    .btn.secondary{background:#2f3340;color:var(--text);}
+    .btn.safe{background:var(--accent-2);}
+    .btn.danger{background:var(--danger);}
+    .btn:disabled{opacity:.6;cursor:not-allowed;}
+    .actions{display:grid;gap:10px;grid-template-columns:1fr;}
+    .preview{white-space:pre-wrap;background:rgba(0,0,0,.06);padding:12px;border-radius:12px;
+      font-family:ui-sans-serif,system-ui,-apple-system,Roboto,Arial;border:1px dashed rgba(255,255,255,.12);}
+    .tag{font-size:.75rem;padding:3px 8px;border-radius:999px;background:rgba(0,0,0,.08);color:var(--muted);display:inline-block;}
+    footer{text-align:center;color:var(--muted);font-size:.85rem;margin:16px 0 0;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Desfiliação Sindical — Prefeitura de Aracruz</h1>
+      <p class="lead">Preencha, gere o PDF e envie por e-mail (com anexo).</p>
+    </header>
+
+    <form id="form" class="card" onsubmit="event.preventDefault(); gerarTudo();">
+      <div class="grid">
+        <div>
+          <label for="nome">Nome completo*</label>
+          <input id="nome" required autocomplete="name" placeholder="Seu nome" />
+        </div>
+        <div>
+          <label for="cpf">CPF*</label>
+          <input id="cpf" required inputmode="numeric" placeholder="000.000.000-00" pattern="[0-9.\\- ]{11,14}" />
+        </div>
+
+        <!-- Empregador fixo -->
+        <div class="grid-1">
+          <label for="empresa">Empregador</label>
+          <input id="empresa" value="Prefeitura de Aracruz" readonly />
+        </div>
+
+        <div>
+          <label for="matricula">Matrícula/Registro</label>
+          <input id="matricula" placeholder="Opcional" />
+        </div>
+        <div class="grid-1">
+          <label for="endereco">Endereço</label>
+          <input id="endereco" autocomplete="street-address" placeholder="Rua, nº, bairro, cidade/UF" />
+        </div>
+        <div>
+          <label for="local">Local (cidade/UF)*</label>
+          <input id="local" required placeholder="Ex.: Aracruz/ES" />
+        </div>
+        <div>
+          <label for="data">Data</label>
+          <input id="data" type="date" />
+        </div>
+
+        <!-- Sindicato limitado -->
+        <div>
+          <label for="sindicatoSel">Sindicato*</label>
+          <select id="sindicatoSel" required>
+            <option value="" disabled selected>Selecione</option>
+            <option value="SISMA">SISMA</option>
+            <option value="SINDUPES">SINDUPES</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="emailSind">E-mail do sindicato*</label>
+          <input id="emailSind" type="email" required placeholder="e-mail do sindicato" />
+        </div>
+        <div>
+          <label for="emailRh">E-mail do RH (cópia)</label>
+          <input id="emailRh" type="email" placeholder="rh@aracruz.es.gov.br (se desejar)" />
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:10px">
+        <div class="grid-1">
+          <label for="observacoes">Observações adicionais (opcional)</label>
+          <textarea id="observacoes" placeholder="Ex.: Favor confirmar em até 5 dias úteis."></textarea>
+          <div class="help">Dica: confira o e-mail correto do sindicato escolhido (SISMA ou SINDUPES) antes de enviar.</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btn" type="submit">Gerar PDF</button>
+        <button class="btn secondary" type="button" onclick="limpar()">Limpar</button>
+      </div>
+    </form>
+
+    <section id="saida" class="card" hidden>
+      <div class="row" style="align-items:center; margin-bottom:8px">
+        <strong>Pré-visualização</strong>
+        <span class="tag" id="statusCompat">Verificando recursos do aparelho…</span>
+      </div>
+      <div id="preview" class="preview"></div>
+
+      <div class="actions" style="margin-top:12px">
+        <button id="btnSharePDF" class="btn safe" type="button" onclick="compartilharPDF()" disabled>
+          Abrir e-mail com PDF anexado
+        </button>
+        <a id="btnMailto" class="btn" href="#" target="_blank" rel="noopener">
+          Abrir e-mail (assunto + corpo — sem anexo)
+        </a>
+        <a id="btnBaixarPDF" class="btn secondary" href="#" download="carta-desfiliacao.pdf">
+          Baixar PDF
+        </a>
+        <button class="btn danger" type="button" onclick="editar()">Voltar e editar</button>
+      </div>
+
+      <p class="help" style="margin-top:10px">
+        💡 <b>Importante:</b> se “Abrir e-mail com PDF” estiver indisponível no seu aparelho,
+        use “Abrir e-mail (sem anexo)” e anexe o PDF baixado.
+      </p>
+    </section>
+
+    <footer>
+      <p>Guarde os comprovantes de envio/protocolo.</p>
+    </footer>
+  </div>
+
+  <!-- jsPDF CDN para gerar o PDF -->
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let pdfBlob = null, pdfURL = null;
+
+    // Data padrão = hoje + compatibilidade
+    (function init(){
+      const hoje = new Date();
+      $("data").value = hoje.toISOString().slice(0,10);
+      const testFile = new File(["x"], "x.pdf", {type:"application/pdf"});
+      const hasShare = !!navigator.share;
+      const canFiles = !!navigator.canShare && navigator.canShare({ files: [testFile] });
+      $("statusCompat").textContent = hasShare ? (canFiles ? "Compatível: compartilhar com anexo" : "Compatível: compartilhar (sem anexo)") : "Sem compartilhamento nativo";
+
+      // Sugestão de placeholder de e-mail conforme sindicato
+      $("sindicatoSel").addEventListener("change", () => {
+        const v = $("sindicatoSel").value;
+        $("emailSind").placeholder = v === "SISMA" ? "e-mail do SISMA" : "e-mail do SINDUPES";
+      });
+    })();
+
+    function validarObrigatorios() {
+      const ids = ["nome","cpf","local","sindicatoSel","emailSind"];
+      return ids.every(id => $(id).value && $(id).value.trim());
+    }
+
+    function gerarAssunto() {
+      const nome = $("nome").value.trim();
+      const cpf = $("cpf").value.replace(/\D/g,"");
+      const cpfFmt = cpf ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,"$1.$2.$3-$4") : "";
+      const sindicato = $("sindicatoSel").value || "Sindicato";
+      return `Pedido de Desfiliação — ${nome}${cpfFmt ? " — CPF " + cpfFmt : ""} — ${sindicato}`;
+    }
+
+    function montarTextoCarta() {
+      const nome = $("nome").value.trim();
+      const cpf = $("cpf").value.trim();
+      const empresa = $("empresa").value.trim(); // já fixo
+      const matricula = $("matricula").value.trim();
+      const endereco = $("endereco").value.trim();
+      const local = $("local").value.trim();
+      const data = $("data").value ? new Date($("data").value) : new Date();
+      const dataFmt = data.toLocaleDateString("pt-BR");
+      const sindicato = $("sindicatoSel").value;
+      const obs = $("observacoes").value.trim();
+
+      const header = `${nome}
+CPF: ${cpf}${matricula ? `  •  Matrícula: ${matricula}` : ""}\nEmpregador: ${empresa}${endereco ? `\nEndereço: ${endereco}` : ""}`;
+
+      const corpo = `Ao Sindicato ${sindicato}
+A/C: Diretoria
+
+Assunto: Pedido de Desfiliação
+
+Prezados(as),
+
+Por meio desta, solicito minha **imediata desfiliação** deste sindicato, bem como a suspensão de quaisquer descontos em folha referentes a contribuições sindicais, assistenciais, confederativas ou de qualquer outra natureza, a partir desta data.
+
+Solicito, ainda, o protocolo deste pedido e o envio de comprovante de recebimento. Informo também à Prefeitura de Aracruz como empregadora.
+
+${obs ? "Observações: " + obs + "\n\n" : ""}Sem mais, agradeço pela atenção.
+
+${local}, ${dataFmt}
+
+____________________________________
+${nome}`;
+
+      return header + "\n\n" + corpo;
+    }
+
+    async function gerarPDFBlob() {
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF) throw new Error("jsPDF não carregou.");
+
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const margem = 56;
+      const largura = doc.internal.pageSize.getWidth() - margem*2;
+      const texto = montarTextoCarta();
+
+      doc.setFont("Times","Normal");
+      doc.setFontSize(13);
+
+      const linhas = doc.splitTextToSize(texto, largura);
+      let y = margem;
+      const altura = doc.internal.pageSize.getHeight();
+
+      for (const l of linhas) {
+        if (y > altura - margem) { doc.addPage(); y = margem; }
+        doc.text(l, margem, y);
+        y += 18;
+      }
+
+      // Gera Blob
+      return new Promise((resolve) => {
+        const dataUriString = doc.output("datauristring");
+        const byteString = atob(dataUriString.split(",")[1]);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i=0; i<byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+        resolve(new Blob([ab], { type: "application/pdf" }));
+      });
+    }
+
+    function atualizarMailto(texto) {
+      const to = $("emailSind").value.trim();
+      const cc = $("emailRh").value.trim();
+      const subject = encodeURIComponent(gerarAssunto());
+      const body = encodeURIComponent(texto);
+      const href = `mailto:${encodeURIComponent(to)}?${cc ? "cc=" + encodeURIComponent(cc) + "&" : ""}subject=${subject}&body=${body}`;
+      $("btnMailto").href = href;
+    }
+
+    async function gerarTudo() {
+      if (!validarObrigatorios()) { alert("Preencha os campos marcados com *"); return; }
+
+      const texto = montarTextoCarta();
+      $("preview").textContent = texto;
+      $("saida").hidden = false;
+
+      try {
+        pdfBlob = await gerarPDFBlob();
+        if (pdfURL) URL.revokeObjectURL(pdfURL);
+        pdfURL = URL.createObjectURL(pdfBlob);
+        const nomeArquivo = `desfiliacao-aracruz-${($("nome").value.trim()||"").toLowerCase().replace(/\s+/g,"-")||"servidor"}.pdf`;
+        const linkBaixar = $("btnBaixarPDF");
+        linkBaixar.href = pdfURL;
+        linkBaixar.download = nomeArquivo;
+
+        const testeArquivo = new File([pdfBlob], nomeArquivo, { type: "application/pdf" });
+        $("btnSharePDF").disabled = !(navigator.canShare && navigator.canShare({ files: [testeArquivo] }));
+
+      } catch (e) {
+        console.error(e);
+        alert("Falha ao gerar o PDF. Tente novamente.");
+        return;
+      }
+
+      atualizarMailto(texto);
+
+      const hasShare = !!navigator.share;
+      const canFiles = !!navigator.canShare && navigator.canShare({ files: [new File(["x"], "x.pdf", {type:"application/pdf"})] });
+      $("statusCompat").textContent = hasShare ? (canFiles ? "Compatível: compartilhar com anexo" : "Compatível: compartilhar (sem anexo)") : "Sem compartilhamento nativo";
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    }
+
+    function editar(){ $("saida").hidden = true; window.scrollTo({top:0, behavior:"smooth"}); }
+    function limpar(){
+      document.getElementById("form").reset();
+      $("empresa").value = "Prefeitura de Aracruz";
+      $("data").value = new Date().toISOString().slice(0,10);
+      $("saida").hidden = true;
+      if (pdfURL) { URL.revokeObjectURL(pdfURL); pdfURL = null; }
+      pdfBlob = null;
+    }
+
+    async function compartilharPDF() {
+      try {
+        if (!pdfBlob) pdfBlob = await gerarPDFBlob();
+        const nomeArquivo = $("btnBaixarPDF").download || "desfiliacao-aracruz.pdf";
+        const file = new File([pdfBlob], nomeArquivo, { type: "application/pdf" });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          const to = $("emailSind").value.trim();
+          const cc = $("emailRh").value.trim();
+          const subject = gerarAssunto();
+          const corpo = montarTextoCarta();
+
+          const textoEmail = [
+            `Para: ${to}`, cc ? `Cópia: ${cc}` : "", "",
+            corpo
+          ].filter(Boolean).join("\n");
+
+          await navigator.share({ title: subject, text: textoEmail, files: [file] });
+        } else {
+          alert("Seu dispositivo/navegador não permite compartilhar arquivos diretamente. Use 'Baixar PDF' e anexe no e-mail.");
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Não foi possível abrir o compartilhamento. Baixe o PDF e anexe no e-mail.");
+      }
+    }
+  </script>
+</body>
+</html>
